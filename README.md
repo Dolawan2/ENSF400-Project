@@ -59,15 +59,16 @@ project-folder/
 └── task-tracker.xlsx
 
 Files or acvtivities in each folder
+ I'm assuming we use typescript/could use javascript ofr frontend
 
-/ENSF400-Project
+ENSF400-Project
 ├── frontend/
 │ └── src/
-│ ├── pages/ I'm assuming we use typescript/could use javascript
-│ │ SignupPage.tsx
-│ │ LoginPage.tsx
-│ │ StudentDashboard.tsx
-│ │ AdminDashboard.tsx
+│ ├── pages - SignupPage.tsx, LoginPage.tsx, StudentDashboard.tsx,            AdminDashboard.tsx
+│ │ 
+│ │ 
+│ │ 
+│ │ 
 │ │ HistoryPage.tsx
 │ ├── components/
 │ │ FileUpload.tsx
