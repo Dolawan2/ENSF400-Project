@@ -63,6 +63,23 @@ export default function Dashboard() {
     }
   }
 
+  async function handleDelete(e, uploadId) {
+    e.stopPropagation();
+    if (!confirm('Delete this file and all its generated content?')) return;
+
+    try {
+      await api.delete(`/upload/${uploadId}`);
+      setUploads((prev) => prev.filter((u) => u.id !== uploadId));
+      if (selectedUpload?.id === uploadId) {
+        setSelectedUpload(null);
+        setActiveGeneration(null);
+        setGenerations([]);
+      }
+    } catch {
+      setError('Failed to delete upload.');
+    }
+  }
+
   async function selectUpload(upload) {
     setSelectedUpload(upload);
     setActiveGeneration(null);
@@ -174,7 +191,10 @@ export default function Dashboard() {
                 className={`upload-item ${selectedUpload?.id === u.id ? 'active' : ''}`}
                 onClick={() => selectUpload(u)}
               >
-                <span className="upload-name">{u.original_name}</span>
+                <div className="upload-item-row">
+                  <span className="upload-name">{u.original_name}</span>
+                  <button className="delete-btn" onClick={(e) => handleDelete(e, u.id)} title="Delete">&times;</button>
+                </div>
                 <span className="upload-date">{new Date(u.created_at).toLocaleDateString()}</span>
               </li>
             ))}
