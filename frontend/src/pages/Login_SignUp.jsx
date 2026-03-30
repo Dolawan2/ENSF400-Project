@@ -11,9 +11,29 @@ export default function Login_SignUp() {
   const [loading, setLoading] = useState(false);
   const { login, register } = useAuth();
 
+  function switchMode(mode) {
+    if (mode === action) return;
+    setAction(mode);
+    setError("");
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+
+    if (action === "Sign Up" && !name.trim()) {
+      setError("Name is required.");
+      return;
+    }
+    if (!email.trim()) {
+      setError("Email is required.");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -30,7 +50,7 @@ export default function Login_SignUp() {
   }
 
   return (
-    <form className="auth-container" onSubmit={handleSubmit}>
+    <div className="auth-container">
       <div className="auth-header">
         <div className="auth-text">{action}</div>
         <div className="auth-underline"></div>
@@ -44,7 +64,6 @@ export default function Login_SignUp() {
               placeholder="Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              required
             />
           </div>
         )}
@@ -55,7 +74,6 @@ export default function Login_SignUp() {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
           />
         </div>
 
@@ -65,8 +83,6 @@ export default function Login_SignUp() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={8}
           />
         </div>
       </div>
@@ -79,23 +95,23 @@ export default function Login_SignUp() {
 
       <div className="submit-container">
         <button
-          type={action === "Sign Up" ? "submit" : "button"}
+          type="button"
           className={action === "Sign Up" ? "submit active" : "submit gray"}
-          onClick={() => { if (action !== "Sign Up") setAction("Sign Up"); }}
+          onClick={() => action === "Sign Up" ? handleSubmit(new Event('submit')) : switchMode("Sign Up")}
           disabled={loading}
         >
           Sign Up
         </button>
 
         <button
-          type={action === "Login" ? "submit" : "button"}
+          type="button"
           className={action === "Login" ? "submit active" : "submit gray"}
-          onClick={() => { if (action !== "Login") setAction("Login"); }}
+          onClick={() => action === "Login" ? handleSubmit(new Event('submit')) : switchMode("Login")}
           disabled={loading}
         >
           Login
         </button>
       </div>
-    </form>
+    </div>
   );
 }

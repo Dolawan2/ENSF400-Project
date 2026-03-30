@@ -16,7 +16,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
     setUser(data.user);
-    navigate('/dashboard');
+    navigate(data.user.role === 'admin' ? '/admin' : '/dashboard');
     return data.user;
   }
 
@@ -25,7 +25,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
     setUser(data.user);
-    navigate('/dashboard');
+    navigate(data.user.role === 'admin' ? '/admin' : '/dashboard');
     return data.user;
   }
 
