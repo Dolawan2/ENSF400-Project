@@ -3,11 +3,47 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import '../styles/Dashboard.css';
 
+function FlashCard({ question, index }) {
+  const [revealed, setRevealed] = useState(false);
+
+  return (
+    <div className={`flashcard ${revealed ? 'revealed' : ''}`} onClick={() => setRevealed(!revealed)}>
+      <div className="flashcard-front">
+        <span className="flashcard-number">{index + 1}</span>
+        <p>{question.question}</p>
+        {question.options && (
+          <ul className="flashcard-options">
+            {question.options.map((opt, j) => (
+              <li key={j}>{String.fromCharCode(65 + j)}) {opt}</li>
+            ))}
+          </ul>
+        )}
+        <span className="flashcard-hint">Click to reveal answer</span>
+      </div>
+      <div className="flashcard-back">
+        <span className="flashcard-number">{index + 1}</span>
+        <p className="flashcard-question">{question.question}</p>
+        {question.options ? (
+          <div className="flashcard-answer">
+            <span className="answer-label">Answer:</span> {question.answer}) {question.options[question.answer.charCodeAt(0) - 65]}
+          </div>
+        ) : (
+          <div className="flashcard-answer">
+            <span className="answer-label">Sample Answer:</span> {question.sampleAnswer}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const [uploads, setUploads] = useState([]);
   const [selectedUpload, setSelectedUpload] = useState(null);
-  const [generation, setGeneration] = useState(null);
+  const [generations, setGenerations] = useState([]);
+  const [activeGeneration, setActiveGeneration] = useState(null);
+  const [activeTab, setActiveTab] = useState('summary');
   const [questionType, setQuestionType] = useState('multiple_choice');
   const [numQuestions, setNumQuestions] = useState(5);
   const [loading, setLoading] = useState(false);
@@ -27,6 +63,25 @@ export default function Dashboard() {
     }
   }
 
+  async function selectUpload(upload) {
+    setSelectedUpload(upload);
+    setActiveGeneration(null);
+    setGenerations([]);
+    setActiveTab('summary');
+    setError('');
+
+    try {
+      const historyRes = await api.get('/user/history');
+      const uploadGens = historyRes.data.generations.filter(g => g.upload_id === upload.id);
+      setGenerations(uploadGens);
+      if (uploadGens.length > 0) {
+        setActiveGeneration(uploadGens[0]);
+      }
+    } catch {
+      // No past generations, that's fine
+    }
+  }
+
   async function handleFileUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -39,7 +94,7 @@ export default function Dashboard() {
     try {
       const { data } = await api.post('/upload', formData);
       setUploads((prev) => [data.upload, ...prev]);
-      setSelectedUpload(data.upload);
+      selectUpload(data.upload);
     } catch (err) {
       setError(err.response?.data?.error || 'Upload failed.');
     } finally {
@@ -52,7 +107,6 @@ export default function Dashboard() {
     if (!selectedUpload) return;
     setLoading(true);
     setError('');
-    setGeneration(null);
 
     try {
       const { data } = await api.post('/generate', {
@@ -60,7 +114,9 @@ export default function Dashboard() {
         questionType,
         numQuestions,
       });
-      setGeneration(data.generation);
+      setActiveGeneration(data.generation);
+      setGenerations((prev) => [data.generation, ...prev]);
+      setActiveTab('summary');
     } catch (err) {
       setError(err.response?.data?.error || 'Generation failed.');
     } finally {
@@ -68,29 +124,10 @@ export default function Dashboard() {
     }
   }
 
-  async function handleRegenerate() {
-    if (!selectedUpload) return;
-    setLoading(true);
-    setError('');
-
-    try {
-      const { data } = await api.post('/generate/regenerate', {
-        uploadId: selectedUpload.id,
-        questionType,
-        numQuestions,
-      });
-      setGeneration(data.generation);
-    } catch (err) {
-      setError(err.response?.data?.error || 'Regeneration failed.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
   async function handleDownload(format) {
-    if (!generation) return;
+    if (!activeGeneration) return;
     try {
-      const response = await api.get(`/download/${generation.id}?format=${format}`, {
+      const response = await api.get(`/download/${activeGeneration.id}?format=${format}`, {
         responseType: 'blob',
       });
       const url = window.URL.createObjectURL(response.data);
@@ -103,6 +140,9 @@ export default function Dashboard() {
       setError('Download failed.');
     }
   }
+
+  const questionTypeLabel = (type) =>
+    type === 'multiple_choice' ? 'Multiple Choice' : 'Short Answer';
 
   return (
     <div className="dashboard">
@@ -132,7 +172,7 @@ export default function Dashboard() {
               <li
                 key={u.id}
                 className={`upload-item ${selectedUpload?.id === u.id ? 'active' : ''}`}
-                onClick={() => { setSelectedUpload(u); setGeneration(null); }}
+                onClick={() => selectUpload(u)}
               >
                 <span className="upload-name">{u.original_name}</span>
                 <span className="upload-date">{new Date(u.created_at).toLocaleDateString()}</span>
@@ -165,45 +205,99 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {generation && (
-                <div className="generation-result">
-                  <section className="summary-section">
-                    <h3>Summary</h3>
-                    <p>{generation.summary}</p>
-                  </section>
-
-                  <section className="questions-section">
-                    <h3>Questions</h3>
-                    {generation.questions.map((q, i) => (
-                      <div key={i} className="question-card">
-                        <p className="question-text"><strong>{i + 1}.</strong> {q.question}</p>
-                        {q.options && (
-                          <ul className="options-list">
-                            {q.options.map((opt, j) => (
-                              <li key={j} className={String.fromCharCode(65 + j) === q.answer ? 'correct' : ''}>
-                                {String.fromCharCode(65 + j)}) {opt}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                        {q.sampleAnswer && (
-                          <p className="sample-answer"><em>Sample Answer:</em> {q.sampleAnswer}</p>
-                        )}
-                      </div>
+              {/* Past generations selector */}
+              {generations.length > 1 && (
+                <div className="generation-history">
+                  <span>Previous generations:</span>
+                  <div className="gen-chips">
+                    {generations.map((g) => (
+                      <button
+                        key={g.id}
+                        className={`gen-chip ${activeGeneration?.id === g.id ? 'active' : ''}`}
+                        onClick={() => { setActiveGeneration(g); setActiveTab('summary'); }}
+                      >
+                        {questionTypeLabel(g.question_type)} &middot; {new Date(g.created_at).toLocaleTimeString()}
+                      </button>
                     ))}
-                  </section>
-
-                  <div className="action-row">
-                    <button onClick={handleRegenerate} disabled={loading} className="btn btn-secondary">
-                      {loading ? 'Regenerating...' : 'Regenerate'}
-                    </button>
-                    <div className="download-buttons">
-                      <span>Download:</span>
-                      <button onClick={() => handleDownload('txt')} className="btn btn-small">TXT</button>
-                      <button onClick={() => handleDownload('csv')} className="btn btn-small">CSV</button>
-                      <button onClick={() => handleDownload('md')} className="btn btn-small">MD</button>
-                    </div>
                   </div>
+                </div>
+              )}
+
+              {activeGeneration && (
+                <div className="generation-result">
+                  {/* Tabs */}
+                  <div className="tabs">
+                    <button
+                      className={`tab ${activeTab === 'summary' ? 'active' : ''}`}
+                      onClick={() => setActiveTab('summary')}
+                    >
+                      Summary
+                    </button>
+                    <button
+                      className={`tab ${activeTab === 'questions' ? 'active' : ''}`}
+                      onClick={() => setActiveTab('questions')}
+                    >
+                      Questions ({activeGeneration.questions.length})
+                    </button>
+                    <button
+                      className={`tab ${activeTab === 'download' ? 'active' : ''}`}
+                      onClick={() => setActiveTab('download')}
+                    >
+                      Download
+                    </button>
+                  </div>
+
+                  {/* Tab content */}
+                  <div className="tab-content">
+                    {activeTab === 'summary' && (
+                      <section className="summary-section">
+                        <p>{activeGeneration.summary}</p>
+                      </section>
+                    )}
+
+                    {activeTab === 'questions' && (
+                      <section className="questions-section">
+                        <div className="flashcard-grid">
+                          {activeGeneration.questions.map((q, i) => (
+                            <FlashCard key={i} question={q} index={i} />
+                          ))}
+                        </div>
+                      </section>
+                    )}
+
+                    {activeTab === 'download' && (
+                      <section className="download-section">
+                        <p>Download this study material in your preferred format:</p>
+                        <div className="download-grid">
+                          <button onClick={() => handleDownload('txt')} className="download-card">
+                            <span className="download-icon">TXT</span>
+                            <span>Plain Text</span>
+                          </button>
+                          <button onClick={() => handleDownload('csv')} className="download-card">
+                            <span className="download-icon">CSV</span>
+                            <span>Spreadsheet</span>
+                          </button>
+                          <button onClick={() => handleDownload('md')} className="download-card">
+                            <span className="download-icon">MD</span>
+                            <span>Markdown</span>
+                          </button>
+                        </div>
+                      </section>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {!activeGeneration && !loading && (
+                <div className="empty-state">
+                  <p>Select question type and count, then hit Generate</p>
+                </div>
+              )}
+
+              {loading && (
+                <div className="loading-state">
+                  <div className="spinner"></div>
+                  <p>Generating study material...</p>
                 </div>
               )}
             </>
