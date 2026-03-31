@@ -3,8 +3,9 @@ import logging
 from google import genai
 from google.genai import types
 
-from Config import settings
-from Models import (
+from app.core.config import settings
+
+from app.models.generate_models import (
     QuestionType,
     MultipleChoiceQuestion,
     ShortAnswerQuestion,

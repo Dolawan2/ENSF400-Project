@@ -2,9 +2,9 @@ import asyncio
 import logging
 from fastapi import APIRouter, HTTPException, status
 
-from Models import GenerateRequest, GenerateResponse
-from LLM_Service import runGeneration
-from Config import settings
+from app.services.llm_service import runGeneration
+from app.models.generate_models import GenerateRequest, GenerateResponse
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
