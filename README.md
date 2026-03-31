@@ -1,75 +1,129 @@
-# Study Material Generator (LLM-Based)
+# StudyDigest
 
-## Project Overview
+A full-stack web application that allows students to upload PDF notes and generate AI-powered summaries and practice questions using Google Gemini.
 
-This project is a full-stack application that allows users to upload study materials and automatically generate summaries and questions using a Large Language Model (LLM).
+## Project Structure
 
-The system includes:
-
-- User authentication (students & admins)
-- File upload and processing
-- AI-generated summaries and questions
-- Study history tracking
-- Download/export functionality
-
----
-
-### AI Generation
-
-- Generate summaries
-- Generate questions (multiple choice / short answer)
-
-### Study Tools
-
-- View generated materials
-- Access study history
-- Download/export content
-
-project-folder/
-│
-├── frontend/
-│ ├── src/
-│ │ ├── components/
-│ │ ├── pages/
-│ │ ├── services/
-│ │ ├── hooks/
-│ │ ├── styles/
-│ │ └── App.tsx
-│ └── package.json
-│
+```
 ├── backend/
-│ ├── app/
-│ │ ├── api/
-│ │ ├── services/
-│ │ ├── models/
-│ │ ├── schemas/
-│ │ ├── core/
-│ │ └── main.py
-│ └── requirements.txt
-│
-├── database/
-│ ├── schema.sql
-│ ├── seed.sql
-│ └── backup/
-│
-├── docs/
-│ └── design.md
-│
-├── README.md
-└── task-tracker.xlsx
+│   ├── app/              # LLM microservice (Python/FastAPI)
+│   └── src/              # Main backend API (Node.js/Express)
+├── frontend/             # React frontend (Vite)
+└── database/             # PostgreSQL schema and seed files
+```
 
-Files or acvtivities in each folder
-I'm assuming we use typescript/could use javascript ofr frontend
+## Prerequisites
 
-ENSF400-Project
-Project Structure
+- **Node.js** (v18+)
+- **Python** (3.10+)
+- **PostgreSQL** (v14+)
 
-The project folder ENSF400 is organized into three main directories: frontend, backend, and database, along with supporting files in the root directory.
+## Setup
 
-The frontend folder contains all user interface code built using React and JavaScript ( Suggestion,). Inside src/pages, the main application pages include SignupPage.jsx, LoginPage.jsx, StudentDashboard.jsx, AdminDashboard.jsx, and HistoryPage.jsx. The src/components folder contains reusable UI elements such as FileUpload.jsx, UploadStatus.jsx, StudyViewer.jsx, ExportButton.jsx, Loader.jsx, ErrorMessage.jsx, and SuccessMessage.jsx. The src/services folder includes api.js, which handles communication with the backend, while the src/styles folder contains styling files such as global.css, responsive.css, and dashboard.css. The frontend also includes App.jsx as the main application component, main.jsx as the entry point, and package.json for dependencies.
+### 1. Database
 
-The backend folder contains the server-side logic implemented using FastAPI and Python ( Just a sugguestion). Within the app/api directory, the main API route files are auth.py, upload.py, generate.py, history.py, and admin.py. The app/services folder contains business logic files including llm_service.py, file_service.py, history_service.py, and export_service.py. Database models are defined in app/models with files such as user.py, upload.py, and summary.py. Data validation is handled in app/schemas, which includes auth_schema.py, upload_schema.py, generate_schema.py, history_schema.py, and admin_schema.py. Configuration and security logic are placed in app/core, including config.py, security.py, and auth_utils.py. The backend also includes main.py as the application entry point, requirements.txt for dependencies, and a .env file for environment variables such as API keys and database credentials.
+Create the database and run the schema:
 
-The database folder contains all database-related resources. This includes schema.sql for defining tables, seed.sql for optional sample data, and a backup/ directory for backup and recovery files.
+```bash
+createdb studydigest
+psql -d studydigest -f database/schema.sql
+```
 
-At the root level, the project includes README.md for documentation, .gitignore to exclude unnecessary files from version control, and task-tracker.xlsx for tracking project progress.
+Optionally seed with test users:
+
+```bash
+psql -d studydigest -f database/seed.sql
+```
+
+### 2. Backend (Node.js API)
+
+```bash
+cd backend
+cp .env.example .env
+```
+
+Edit `.env` with your database credentials:
+
+```
+PORT=3000
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=studydigest
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+JWT_SECRET=your-secret-key
+LLM_BASE_URL=http://localhost:8000
+```
+
+Install dependencies and start:
+
+```bash
+npm install
+npm start
+```
+
+The API will be running at `http://localhost:3000`.
+
+### 3. LLM Microservice (Python/FastAPI)
+
+```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+Add your Gemini API key to `backend/.env`:
+
+```
+GEMINI_API_KEY=your-gemini-api-key
+```
+
+Start the LLM service:
+
+```bash
+uvicorn app.main:studyDigestApp --reload --port 8000
+```
+
+The LLM service will be running at `http://localhost:8000`.
+
+### 4. Frontend (React)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend will be running at `http://localhost:5173`.
+
+## Running the Full Application
+
+You need three terminals running simultaneously:
+
+```bash
+# Terminal 1 - Backend API
+cd backend && npm start
+
+# Terminal 2 - LLM Service
+cd backend && source venv/bin/activate && uvicorn app.main:studyDigestApp --reload --port 8000
+
+# Terminal 3 - Frontend
+cd frontend && npm run dev
+```
+
+Then open http://localhost:5173 in your browser.
+
+## API Endpoints
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/api/auth/register` | No | Register a new user |
+| POST | `/api/auth/login` | No | Login |
+| POST | `/api/upload` | Yes | Upload a PDF |
+| POST | `/api/generate` | Yes | Generate summary/questions |
+| GET | `/api/download/:id` | Yes | Download generated content |
+| GET | `/api/user/profile` | Yes | Get user profile |
+| GET | `/api/user/history` | Yes | Get generation history |
+| GET | `/api/admin/users` | Admin | List all users |
+| DELETE | `/api/admin/users/:id` | Admin | Delete a user |

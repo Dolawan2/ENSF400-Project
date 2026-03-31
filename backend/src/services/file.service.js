@@ -1,13 +1,17 @@
-const pdfParse = require('pdf-parse');
+const { PDFParse } = require('pdf-parse');
 const ApiError = require('../utils/ApiError');
 
 async function extractText(buffer, mimetype) {
   if (mimetype === 'application/pdf') {
-    const data = await pdfParse(buffer);
-    if (!data.text || data.text.trim().length === 0) {
+    const uint8 = new Uint8Array(buffer);
+    const parser = new PDFParse(uint8);
+    await parser.load();
+    const result = await parser.getText();
+    const text = result.text || '';
+    if (text.trim().length === 0) {
       throw new ApiError(400, 'Could not extract text from this PDF. Ensure it contains selectable text.');
     }
-    return data.text.trim();
+    return text.trim();
   }
 
   // text/plain or text/markdown
