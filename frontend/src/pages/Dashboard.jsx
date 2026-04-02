@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import Alert from '../components/Alert';
+import LoadingSpinner from '../components/LoadingSpinner';
+import ConfirmDialog from '../components/ConfirmDialog';
 import '../styles/Dashboard.css';
 
 function FlashCard({ question, index }) {
@@ -49,6 +52,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   useEffect(() => {
     fetchUploads();
@@ -63,9 +67,14 @@ export default function Dashboard() {
     }
   }
 
-  async function handleDelete(e, uploadId) {
+  function requestDelete(e, uploadId) {
     e.stopPropagation();
-    if (!confirm('Delete this file and all its generated content?')) return;
+    setConfirmDelete(uploadId);
+  }
+
+  async function handleDelete() {
+    const uploadId = confirmDelete;
+    setConfirmDelete(null);
 
     try {
       await api.delete(`/upload/${uploadId}`);
@@ -193,7 +202,7 @@ export default function Dashboard() {
               >
                 <div className="upload-item-row">
                   <span className="upload-name">{u.original_name}</span>
-                  <button className="delete-btn" onClick={(e) => handleDelete(e, u.id)} title="Delete">&times;</button>
+                  <button className="delete-btn" onClick={(e) => requestDelete(e, u.id)} title="Delete">&times;</button>
                 </div>
                 <span className="upload-date">{new Date(u.created_at).toLocaleDateString()}</span>
               </li>
@@ -203,7 +212,7 @@ export default function Dashboard() {
         </aside>
 
         <main className="main-panel">
-          {error && <div className="error-banner">{error}</div>}
+          <Alert message={error} variant="error" onDismiss={() => setError('')} />
 
           {selectedUpload ? (
             <>
@@ -314,12 +323,7 @@ export default function Dashboard() {
                 </div>
               )}
 
-              {loading && (
-                <div className="loading-state">
-                  <div className="spinner"></div>
-                  <p>Generating study material...</p>
-                </div>
-              )}
+              {loading && <LoadingSpinner message="Generating study material..." />}
             </>
           ) : (
             <div className="empty-state">
@@ -328,6 +332,14 @@ export default function Dashboard() {
           )}
         </main>
       </div>
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        title="Delete Upload"
+        message="Delete this file and all its generated content?"
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDelete(null)}
+      />
     </div>
   );
 }

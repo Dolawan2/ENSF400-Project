@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import Alert from '../components/Alert';
+import ConfirmDialog from '../components/ConfirmDialog';
 import '../styles/AdminDashboard.css';
 
 export default function AdminDashboard() {
@@ -10,6 +12,7 @@ export default function AdminDashboard() {
   const [editForm, setEditForm] = useState({ name: '', email: '', role: '' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   async function fetchUsers() {
     try {
@@ -49,8 +52,13 @@ export default function AdminDashboard() {
     }
   }
 
-  async function handleDelete(id, name) {
-    if (!confirm(`Delete user "${name}" and all their data?`)) return;
+  function requestDelete(id, name) {
+    setConfirmDelete({ id, name });
+  }
+
+  async function handleDelete() {
+    const { id } = confirmDelete;
+    setConfirmDelete(null);
     setError('');
     setSuccess('');
     try {
@@ -76,8 +84,8 @@ export default function AdminDashboard() {
         <h2>User Management</h2>
         <p className="admin-subtitle">{users.length} registered users</p>
 
-        {error && <div className="error-banner">{error}</div>}
-        {success && <div className="success-banner">{success}</div>}
+        <Alert message={error} variant="error" onDismiss={() => setError('')} />
+        <Alert message={success} variant="success" onDismiss={() => setSuccess('')} />
 
         <table className="users-table">
           <thead>
@@ -133,7 +141,7 @@ export default function AdminDashboard() {
                     <td className="actions-cell">
                       <button className="btn-action edit" onClick={() => startEdit(u)}>Edit</button>
                       {u.id !== user.id && (
-                        <button className="btn-action delete" onClick={() => handleDelete(u.id, u.name)}>Delete</button>
+                        <button className="btn-action delete" onClick={() => requestDelete(u.id, u.name)}>Delete</button>
                       )}
                     </td>
                   </>
@@ -143,6 +151,14 @@ export default function AdminDashboard() {
           </tbody>
         </table>
       </main>
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        title="Delete User"
+        message={confirmDelete ? `Delete user "${confirmDelete.name}" and all their data?` : ''}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDelete(null)}
+      />
     </div>
   );
 }
