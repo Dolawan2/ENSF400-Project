@@ -12,6 +12,7 @@ const updateUserSchema = Joi.object({
 }).min(1);
 
 router.get('/users', adminController.listUsers);
+router.get('/users/:id', adminController.getUser);
 router.put('/users/:id', validate(updateUserSchema), adminController.updateUser);
 router.delete('/users/:id', adminController.deleteUser);
 
