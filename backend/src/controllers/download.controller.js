@@ -1,4 +1,5 @@
 const genQueries = require('../db/queries/generations');
+const uploadQueries = require('../db/queries/uploads');
 const { formatTxt, formatCsv, formatMd } = require('../services/export.service');
 const ApiError = require('../utils/ApiError');
 
@@ -13,6 +14,10 @@ async function download(req, res, next) {
     }
 
     const format = req.query.format || 'txt';
+
+    // Get original upload name for the filename
+    const upload = await uploadQueries.findById(generation.upload_id);
+    const baseName = upload?.original_name?.replace(/\.[^.]+$/, '') || 'study-material';
 
     let content, contentType, ext;
     switch (format) {
@@ -33,7 +38,7 @@ async function download(req, res, next) {
     }
 
     res.setHeader('Content-Type', contentType);
-    res.setHeader('Content-Disposition', `attachment; filename="study-material.${ext}"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${baseName}.${ext}"`);
     res.send(content);
   } catch (err) {
     next(err);

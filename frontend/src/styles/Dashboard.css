@@ -366,15 +366,29 @@
   color: var(--text-h);
 }
 
-.download-card:hover {
+.download-card:hover:not(:disabled) {
   border-color: var(--primary);
   box-shadow: 0 4px 12px var(--accent-bg);
+}
+
+.download-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.download-card.downloading {
+  opacity: 0.7;
+  border-color: var(--primary);
 }
 
 .download-icon {
   font-size: 24px;
   font-weight: 800;
   color: var(--primary);
+}
+
+.retry-btn {
+  margin-top: 16px;
 }
 
 /* States */
