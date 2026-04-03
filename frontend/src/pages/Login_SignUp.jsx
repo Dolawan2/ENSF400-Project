@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import Alert from "../components/Alert";
 import "../styles/LoginForm.css";
 
 export default function Login_SignUp() {
@@ -87,7 +88,7 @@ export default function Login_SignUp() {
         </div>
       </div>
 
-      {error && <div className="auth-error">{error}</div>}
+      <Alert message={error} variant="error" onDismiss={() => setError('')} />
 
       <div className="forgot-password">
         Forgot password? <span>Click Here</span>
