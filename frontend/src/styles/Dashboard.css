@@ -2,6 +2,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  color: var(--text);
 }
 
 /* Header */
@@ -10,7 +11,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px 24px;
-  background: #3c009d;
+  background: var(--primary);
   color: white;
 }
 
@@ -24,6 +25,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
+  color: white;
 }
 
 /* Layout */
@@ -35,17 +37,19 @@
 /* Sidebar */
 .sidebar {
   width: 280px;
-  background: #f8f8fa;
-  border-right: 1px solid #e5e4e7;
+  background: var(--bg);
+  border-right: 1px solid var(--border);
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  color: var(--text);
 }
 
 .sidebar h2 {
   margin: 0;
   font-size: 18px;
+  color: var(--text-h);
 }
 
 .upload-list {
@@ -65,18 +69,19 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  color: var(--text);
 }
 
 .upload-item:hover {
-  background: #eaeaea;
+  background: var(--social-bg);
 }
 
 .upload-item.active {
-  background: #e8d5ff;
+  background: var(--accent-bg);
 }
 
 .upload-item.empty {
-  color: #999;
+  color: var(--muted);
   cursor: default;
 }
 
@@ -93,13 +98,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--text-h);
 }
 
 .delete-btn {
   background: none;
   border: none;
   font-size: 18px;
-  color: #999;
+  color: var(--muted);
   cursor: pointer;
   padding: 0 4px;
   line-height: 1;
@@ -114,7 +120,7 @@
 
 .upload-date {
   font-size: 12px;
-  color: #888;
+  color: var(--muted);
 }
 
 /* Main Panel */
@@ -123,12 +129,14 @@
   padding: 24px;
   text-align: left;
   overflow-y: auto;
+  color: var(--text);
 }
 
 /* Generate Controls */
 .generate-controls h2 {
   margin: 0 0 16px 0;
   font-size: 20px;
+  color: var(--text-h);
 }
 
 .controls-row {
@@ -141,10 +149,10 @@
 .controls-row select {
   padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border);
   font-size: 14px;
   background: white;
-  color: #333;
+  color: var(--text-h);
   appearance: auto;
   -webkit-appearance: auto;
 }
@@ -157,7 +165,7 @@
   gap: 10px;
   flex-wrap: wrap;
   font-size: 13px;
-  color: #666;
+  color: var(--text);
 }
 
 .gen-chips {
@@ -169,21 +177,21 @@
 .gen-chip {
   padding: 5px 12px;
   border-radius: 20px;
-  border: 1px solid #ccc;
-  background: #f0f0f0;
+  border: 1px solid var(--border);
+  background: var(--social-bg);
   font-size: 12px;
-  color: #444;
+  color: var(--text-h);
   cursor: pointer;
 }
 
 .gen-chip:hover {
-  background: #e0e0e0;
+  background: var(--accent-bg);
 }
 
 .gen-chip.active {
-  background: #3c009d;
+  background: var(--primary);
   color: white;
-  border-color: #3c009d;
+  border-color: var(--primary);
 }
 
 /* Tabs */
@@ -191,7 +199,7 @@
   display: flex;
   gap: 0;
   margin-top: 20px;
-  border-bottom: 2px solid #e5e4e7;
+  border-bottom: 2px solid var(--border);
 }
 
 .tab {
@@ -200,7 +208,7 @@
   background: none;
   font-size: 15px;
   font-weight: 600;
-  color: #888;
+  color: var(--text);
   cursor: pointer;
   border-bottom: 2px solid transparent;
   margin-bottom: -2px;
@@ -208,12 +216,12 @@
 }
 
 .tab:hover {
-  color: #3c009d;
+  color: var(--primary);
 }
 
 .tab.active {
-  color: #3c009d;
-  border-bottom-color: #3c009d;
+  color: var(--primary);
+  border-bottom-color: var(--primary);
 }
 
 .tab-content {
@@ -224,8 +232,8 @@
 .summary-section p {
   line-height: 1.7;
   white-space: pre-wrap;
-  font-size: 15px;
-  color: #333;
+  /* font-size: 15px; */
+  color: var(--text-h);
 }
 
 /* Flashcard Grid */
@@ -245,12 +253,13 @@
 .flashcard-back {
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid #e5e4e7;
+  border: 1px solid var(--border);
   background: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   min-height: 180px;
   display: flex;
   flex-direction: column;
+  color: var(--text);
 }
 
 .flashcard-front {
@@ -259,8 +268,8 @@
 
 .flashcard-back {
   display: none;
-  background: #f0ebff;
-  border-color: #c9b3f5;
+  background: white;
+  border-color: var(--border);
 }
 
 .flashcard.revealed .flashcard-front {
@@ -278,7 +287,7 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: #3c009d;
+  background: var(--primary);
   color: white;
   font-size: 13px;
   font-weight: 700;
@@ -290,7 +299,7 @@
 .flashcard-back .flashcard-question {
   font-size: 15px;
   font-weight: 600;
-  color: #222;
+  color: var(--text-h);
   margin: 0 0 12px 0;
   flex: 1;
 }
@@ -307,21 +316,21 @@
 .flashcard-options li {
   padding: 6px 10px;
   border-radius: 6px;
-  background: #f4f3f6;
+  background: var(--social-bg);
   font-size: 14px;
-  color: #444;
+  color: var(--text-h);
 }
 
 .flashcard-hint {
   font-size: 12px;
-  color: #aaa;
+  color: var(--muted);
   text-align: center;
   margin-top: auto;
 }
 
 .flashcard-answer {
   font-size: 15px;
-  color: #2d006e;
+  color: var(--text-h);
   line-height: 1.6;
   margin-top: auto;
 }
@@ -332,7 +341,7 @@
 
 /* Download Section */
 .download-section p {
-  color: #666;
+  color: var(--text-h);
   margin-bottom: 20px;
 }
 
@@ -349,23 +358,23 @@
   gap: 10px;
   padding: 24px 32px;
   border-radius: 12px;
-  border: 2px solid #e5e4e7;
+  border: 2px solid var(--border);
   background: white;
   cursor: pointer;
   transition: border-color 0.2s, box-shadow 0.2s;
   font-size: 14px;
-  color: #555;
+  color: var(--text-h);
 }
 
 .download-card:hover {
-  border-color: #3c009d;
-  box-shadow: 0 4px 12px rgba(60, 0, 157, 0.1);
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px var(--accent-bg);
 }
 
 .download-icon {
   font-size: 24px;
   font-weight: 800;
-  color: #3c009d;
+  color: var(--primary);
 }
 
 /* States */
@@ -374,7 +383,12 @@
   justify-content: center;
   align-items: center;
   height: 300px;
-  color: #999;
+  color: var(--text);
+}
+
+.empty-state h2,
+.empty-state p {
+  color: var(--text-h);
 }
 
 /* Error/loading/spinner styles moved to Feedback.css */
@@ -395,27 +409,80 @@
 }
 
 .btn-primary {
-  background: #3c009d;
+  background: var(--primary);
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #2e0078;
+  background: var(--primary-hovered);
 }
 
 .btn-secondary {
-  background: #eaeaea;
-  color: #333;
+  background: var(--social-bg);
+  color: var(--text-h);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: #ddd;
+  background: var(--border);
 }
 
 .upload-btn {
   display: inline-block;
   text-align: center;
   cursor: pointer;
+}
+
+@media (prefers-color-scheme: dark) {
+  .controls-row select {
+    background: var(--code-bg);
+    color: var(--text-h);
+    border-color: var(--border);
+  }
+
+  .flashcard-front,
+  .flashcard-back {
+    background: #111827;
+    color: var(--text-h);
+    border-color: #374151;
+  }
+
+  .flashcard-front p,
+  .flashcard-back .flashcard-question,
+  .flashcard-options li,
+  .flashcard-answer {
+    color: var(--text-h);
+  }
+
+  .flashcard-options li {
+    background: #1f2937;
+  }
+
+  .download-card {
+    background: #111827;
+    color: var(--text-h);
+    border-color: #374151;
+  }
+
+  .download-card:hover {
+    background: #1f2937;
+  }
+
+  .gen-chip {
+    background: var(--code-bg);
+    color: var(--text-h);
+  }
+}
+
+.summary-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-h);
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  /* background: var(--social-bg); */
+  /* border: 1px solid var(--border); */
+  text-align: center;
 }
 
 /* Upload modal + dropzone */

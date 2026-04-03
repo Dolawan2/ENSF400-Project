@@ -22,14 +22,15 @@ CREATE TABLE uploads (
 );
 
 CREATE TABLE generations (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    upload_id       UUID            NOT NULL REFERENCES uploads(id) ON DELETE CASCADE,
-    user_id         UUID            NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    summary         TEXT            NOT NULL,
-    question_type   VARCHAR(30)     NOT NULL
-                        CHECK (question_type IN ('multiple_choice', 'short_answer')),
-    questions       JSONB           NOT NULL,
-    created_at      TIMESTAMPTZ     NOT NULL DEFAULT NOW()
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    upload_id           UUID            NOT NULL REFERENCES uploads(id) ON DELETE CASCADE,
+    user_id             UUID            NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    summary             TEXT            NOT NULL,
+    structured_summary  JSONB            NOT NULL,
+    question_type       VARCHAR(30)     NOT NULL
+                            CHECK (question_type IN ('multiple_choice', 'short_answer')),
+    questions           JSONB           NOT NULL,
+    created_at          TIMESTAMPTZ     NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_uploads_user_id ON uploads(user_id);

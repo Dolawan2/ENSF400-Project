@@ -1,11 +1,11 @@
 const pool = require('../../config/database');
 
-async function createGeneration(uploadId, userId, summary, questionType, questions) {
+async function createGeneration(uploadId, userId, summary, structured_summary, questionType, questions) {
   const { rows } = await pool.query(
-    `INSERT INTO generations (upload_id, user_id, summary, question_type, questions)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO generations (upload_id, user_id, summary, structured_summary, question_type, questions)
+     VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING *`,
-    [uploadId, userId, summary, questionType, JSON.stringify(questions)]
+    [uploadId, userId, summary, JSON.stringify(structured_summary), questionType, JSON.stringify(questions)]
   );
   return rows[0];
 }

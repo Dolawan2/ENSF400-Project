@@ -30,8 +30,18 @@ class MultipleChoiceResponse(BaseModel):
 class ShortAnswerResponse(BaseModel):
     questions: List[ShortAnswerQuestion]
 
+class SummarySection(BaseModel):
+    title: str
+    paragraphs: list[str] = Field(default_factory=list)
+    bullets: list[str] = Field(default_factory=list)
+
+
+class StructuredSummaryResponse(BaseModel):
+    title: str
+    sections: list[SummarySection]
 
 class GenerateResponse(BaseModel):
-    summary:      str
+    summary: str
+    structuredSummary: StructuredSummaryResponse
     questionType: QuestionType
-    questions:    List[MultipleChoiceQuestion] | List[ShortAnswerQuestion]
+    questions: List[MultipleChoiceQuestion] | List[ShortAnswerQuestion]

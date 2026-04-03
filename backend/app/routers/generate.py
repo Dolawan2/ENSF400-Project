@@ -19,7 +19,7 @@ async def generateStudyMaterial(request: GenerateRequest):
         )
 
     try:
-        summary, questions = await runGeneration(
+        summary, structuredSummary, questions = await runGeneration(
             notesText=request.notesText,
             questionType=request.questionType,
             numQuestions=request.numQuestions,
@@ -31,7 +31,8 @@ async def generateStudyMaterial(request: GenerateRequest):
             detail="Generation timed out. Please try with shorter notes.",
         )
 
-    except Exception:
+    except Exception as e:
+        logger.exception("Generation failed: %s", e)
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="The AI service is temporarily unavailable. Please try again.",
@@ -39,6 +40,7 @@ async def generateStudyMaterial(request: GenerateRequest):
 
     return GenerateResponse(
         summary=summary,
+        structuredSummary = structuredSummary, 
         questionType=request.questionType,
         questions=questions,
     )
