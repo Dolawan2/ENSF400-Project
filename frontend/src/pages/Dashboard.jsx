@@ -21,6 +21,10 @@ export default function Dashboard() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [dropActive, setDropActive] = useState(false);
+  const [pendingFile, setPendingFile] = useState(null);
+  const [uploadError, setUploadError] = useState('');
 
   useEffect(() => {
     fetchUploads();
@@ -76,12 +80,20 @@ export default function Dashboard() {
     }
   }
 
-  async function handleFileUpload(e) {
-    const file = e.target.files[0];
+  async function handleFileUpload(eventOrFile) {
+    const file = eventOrFile?.target ? eventOrFile.target.files[0] : eventOrFile;
     if (!file) return;
+
+    const allowed = ['application/pdf', 'text/plain', 'text/markdown'];
+    if (!allowed.includes(file.type)) {
+      setError('Only PDF, TXT, and MD files are allowed.');
+      setUploadError('Only PDF, TXT, and MD files are allowed.');
+      return;
+    }
 
     setUploading(true);
     setError('');
+    setUploadError('');
     const formData = new FormData();
     formData.append('file', file);
 
@@ -89,11 +101,16 @@ export default function Dashboard() {
       const { data } = await api.post('/upload', formData);
       setUploads((prev) => [data.upload, ...prev]);
       selectUpload(data.upload);
+      setShowUploadModal(false);
+      setPendingFile(null);
     } catch (err) {
       setError(err.response?.data?.error || 'Upload failed.');
+      setUploadError(err.response?.data?.error || 'Upload failed.');
     } finally {
       setUploading(false);
-      e.target.value = '';
+      if (eventOrFile?.target) {
+        eventOrFile.target.value = '';
+      }
     }
   }
 
@@ -116,6 +133,30 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function onDragOver(e) {
+    e.preventDefault();
+    setDropActive(true);
+  }
+
+  function onDragLeave() {
+    setDropActive(false);
+  }
+
+  function onDrop(e) {
+    e.preventDefault();
+    setDropActive(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) {
+      setPendingFile(file);
+      handleFileUpload(file);
+    }
+  }
+
+  function onBrowseClick() {
+    const input = document.getElementById('hidden-upload-input');
+    if (input) input.click();
   }
 
   async function handleDownload(format) {
@@ -151,16 +192,13 @@ export default function Dashboard() {
       <div className="dashboard-content">
         <aside className="sidebar">
           <h2>Your Uploads</h2>
-          <label className="upload-btn btn btn-primary">
+          <button
+            className="upload-btn btn btn-primary"
+            onClick={() => setShowUploadModal(true)}
+            disabled={uploading}
+          >
             {uploading ? 'Uploading...' : 'Upload File'}
-            <input
-              type="file"
-              accept=".pdf,.txt,.md"
-              onChange={handleFileUpload}
-              disabled={uploading}
-              hidden
-            />
-          </label>
+          </button>
           <ul className="upload-list">
             {uploads.map((u) => (
               <li
@@ -181,6 +219,41 @@ export default function Dashboard() {
 
         <main className="main-panel">
           <Alert message={error} variant="error" onDismiss={() => setError('')} />
+
+          {showUploadModal && (
+            <div className="modal-backdrop" onClick={() => !uploading && setShowUploadModal(false)}>
+              <div className="modal" onClick={(e) => e.stopPropagation()}>
+                <h3>Upload a file</h3>
+                <div
+                  className={`dropzone ${dropActive ? 'active' : ''}`}
+                  onDragOver={onDragOver}
+                  onDragLeave={onDragLeave}
+                  onDrop={onDrop}
+                >
+                  <p>Drag & drop a PDF, TXT, or MD file here</p>
+                  <p>or</p>
+                  <button type="button" className="btn btn-secondary" onClick={onBrowseClick} disabled={uploading}>
+                    Browse files
+                  </button>
+                  <input
+                    id="hidden-upload-input"
+                    type="file"
+                    accept=".pdf,.txt,.md"
+                    hidden
+                    onChange={handleFileUpload}
+                    disabled={uploading}
+                  />
+                </div>
+                {pendingFile && <p className="pending-file">Selected: {pendingFile.name}</p>}
+                {uploadError && <p className="error-text">{uploadError}</p>}
+                <div className="modal-actions">
+                  <button className="btn btn-tertiary" onClick={() => !uploading && setShowUploadModal(false)}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {selectedUpload ? (
             <>
