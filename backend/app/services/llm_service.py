@@ -11,6 +11,7 @@ from app.models.generate_models import (
     ShortAnswerQuestion,
     MultipleChoiceResponse,
     ShortAnswerResponse,
+    StructuredSummaryResponse
 )
 
 logger = logging.getLogger(__name__)
@@ -78,6 +79,48 @@ def buildShortAnswerMessages(notesText: str, numQuestions: int) -> list[dict]:
         },
     ]
 
+def buildStructuredSummaryMessages(summaryText: str) -> list[dict]:
+    return [
+        {
+            "role": "system",
+            "content": (
+                "You are an expert academic editor. "
+                "Convert the provided study summary into a clean structured JSON format.\n\n"
+                "Rules:\n"
+                "- Organize the summary into clear sections.\n"
+                "- Each section must have a short title.\n"
+                "- Put explanatory content into paragraphs.\n"
+                "- Put lists, tips, and grouped items into bullets.\n"
+                "- Keep the meaning of the summary unchanged.\n"
+                "- Do not add new facts.\n"
+                "- Return ONLY valid JSON matching the schema."
+            ),
+        },
+        {
+            "role": "user",
+            "content": f"Convert this summary into structured JSON:\n\n{summaryText}",
+        },
+    ]
+
+async def generateStructuredSummary(summaryText: str) -> StructuredSummaryResponse:
+    structuredMessages = buildStructuredSummaryMessages(summaryText)
+
+    rawResponse = await asyncio.wait_for(
+        asyncio.to_thread(
+            geminiClient.models.generate_content,
+            model=settings.geminiModel,
+            contents=[msg["content"] for msg in structuredMessages],
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=StructuredSummaryResponse,
+                temperature=0.2,
+            ),
+        ),
+        timeout=settings.generationTimeout,
+    )
+
+    parsedResponse: StructuredSummaryResponse = rawResponse.parsed
+    return parsedResponse
 
 async def generateSummary(notesText: str) -> str:
     summaryMessages = buildSummaryMessages(notesText)
@@ -130,13 +173,15 @@ async def runGeneration(
     notesText: str,
     questionType: QuestionType,
     numQuestions: int,
-) -> tuple[str, list]:
+) -> tuple[str, StructuredSummaryResponse, list]:
     try:
-        summary, questions = await asyncio.gather(
-            generateSummary(notesText),
+        summary = await generateSummary(notesText)
+
+        structuredSummary, questions = await asyncio.gather(
+            generateStructuredSummary(summary),
             generateQuestions(notesText, questionType, numQuestions),
         )
-        return summary, questions
+        return summary, structuredSummary, questions
 
     except asyncio.TimeoutError:
         logger.warning("Generation timed out after %ds", settings.generationTimeout)

@@ -25,6 +25,7 @@ async function generate(req, res, next) {
       uploadId,
       req.user.userId,
       result.summary,
+      result.structuredSummary,
       result.questionType,
       result.questions
     );
@@ -57,6 +58,7 @@ async function regenerate(req, res, next) {
       uploadId,
       req.user.userId,
       result.summary,
+      result.structuredSummary,
       result.questionType,
       result.questions
     );

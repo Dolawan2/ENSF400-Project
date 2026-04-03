@@ -4,6 +4,7 @@ import api from '../services/api';
 import Alert from '../components/Alert';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ConfirmDialog from '../components/ConfirmDialog';
+import SummaryView from '../components/SummaryView';
 import '../styles/Dashboard.css';
 
 function FlashCard({ question, index }) {
@@ -280,7 +281,7 @@ export default function Dashboard() {
                   <div className="tab-content">
                     {activeTab === 'summary' && (
                       <section className="summary-section">
-                        <p>{activeGeneration.summary}</p>
+                        <SummaryView summary={activeGeneration.structured_summary} />
                       </section>
                     )}
 
