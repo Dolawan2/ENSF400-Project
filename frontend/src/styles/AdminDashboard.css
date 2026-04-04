@@ -2,6 +2,8 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
 }
 
 .admin-content {
@@ -14,10 +16,11 @@
 .admin-content h2 {
   margin: 0 0 4px 0;
   font-size: 22px;
+  color: var(--text-h);
 }
 
 .admin-subtitle {
-  color: #888;
+  color: var(--muted);
   font-size: 14px;
   margin-bottom: 24px;
 }
@@ -28,13 +31,14 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
+  background: var(--bg);
 }
 
 .users-table th {
   text-align: left;
   padding: 12px 16px;
-  border-bottom: 2px solid #e5e4e7;
-  color: #666;
+  border-bottom: 2px solid var(--border);
+  color: var(--muted);
   font-weight: 600;
   font-size: 13px;
   text-transform: uppercase;
@@ -43,12 +47,12 @@
 
 .users-table td {
   padding: 14px 16px;
-  border-bottom: 1px solid #f0f0f0;
-  color: #333;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
 }
 
 .users-table tbody tr:hover {
-  background: #fafafa;
+  background: var(--accent-bg);
 }
 
 .role-badge {
@@ -76,11 +80,13 @@
 
 .btn-action {
   padding: 5px 14px;
-  border: none;
+  border: 1px solid var(--border);
   border-radius: 6px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  background: var(--bg);
+  color: var(--text);
 }
 
 .btn-action.edit {
@@ -111,28 +117,30 @@
 }
 
 .btn-action.cancel {
-  background: #eaeaea;
-  color: #555;
+  background: var(--social-bg);
+  color: var(--muted);
 }
 
 .btn-action.cancel:hover {
-  background: #ddd;
+  filter: brightness(0.95);
 }
 
 .edit-input {
   padding: 6px 10px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border);
   border-radius: 6px;
   font-size: 14px;
   width: 100%;
   box-sizing: border-box;
+  background: var(--bg);
+  color: var(--text);
 }
 
 .edit-select {
   padding: 6px 10px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border);
   border-radius: 6px;
   font-size: 14px;
-  background: white;
-  color: #333;
+  background: var(--bg);
+  color: var(--text);
 }
