@@ -1,5 +1,30 @@
+function formatStructuredSummaryTxt(structured) {
+  let output = '';
+  if (structured.title) {
+    output += `${structured.title}\n${'='.repeat(40)}\n\n`;
+  }
+  for (const section of structured.sections || []) {
+    output += `${section.title}\n${'-'.repeat(30)}\n`;
+    for (const p of section.paragraphs || []) {
+      output += `${p}\n\n`;
+    }
+    for (const b of section.bullets || []) {
+      output += `  - ${b}\n`;
+    }
+    output += '\n';
+  }
+  return output;
+}
+
 function formatTxt(generation) {
-  let output = `SUMMARY\n${'='.repeat(40)}\n${generation.summary}\n\n`;
+  let output = `SUMMARY\n${'='.repeat(40)}\n`;
+
+  if (generation.structured_summary?.sections) {
+    output += formatStructuredSummaryTxt(generation.structured_summary);
+  } else {
+    output += `${generation.summary}\n\n`;
+  }
+
   output += `QUESTIONS (${generation.question_type})\n${'='.repeat(40)}\n`;
 
   const questions = generation.questions;
@@ -43,8 +68,35 @@ function formatCsv(generation) {
   return csv;
 }
 
+function formatStructuredSummaryMd(structured) {
+  let md = '';
+  if (structured.title) {
+    md += `# ${structured.title}\n\n`;
+  }
+  for (const section of structured.sections || []) {
+    md += `### ${section.title}\n\n`;
+    for (const p of section.paragraphs || []) {
+      md += `${p}\n\n`;
+    }
+    if (section.bullets?.length > 0) {
+      for (const b of section.bullets) {
+        md += `- ${b}\n`;
+      }
+      md += '\n';
+    }
+  }
+  return md;
+}
+
 function formatMd(generation) {
-  let md = `## Summary\n\n${generation.summary}\n\n`;
+  let md = '';
+
+  if (generation.structured_summary?.sections) {
+    md += formatStructuredSummaryMd(generation.structured_summary);
+  } else {
+    md += `## Summary\n\n${generation.summary}\n\n`;
+  }
+
   md += `## Questions (${generation.question_type.replace('_', ' ')})\n\n`;
 
   const questions = generation.questions;

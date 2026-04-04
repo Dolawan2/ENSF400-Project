@@ -21,6 +21,10 @@ export default function Dashboard() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [downloading, setDownloading] = useState(null);
+  const [downloadSuccess, setDownloadSuccess] = useState('');
+  const [downloadError, setDownloadError] = useState('');
+  const [lastFailedFormat, setLastFailedFormat] = useState(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [dropActive, setDropActive] = useState(false);
   const [pendingFile, setPendingFile] = useState(null);
@@ -161,18 +165,29 @@ export default function Dashboard() {
 
   async function handleDownload(format) {
     if (!activeGeneration) return;
+    setDownloading(format);
+    setDownloadError('');
+    setDownloadSuccess('');
+    setLastFailedFormat(null);
+
     try {
       const response = await api.get(`/download/${activeGeneration.id}?format=${format}`, {
         responseType: 'blob',
       });
+
+      const baseName = selectedUpload?.original_name?.replace(/\.[^.]+$/, '') || 'study-material';
       const url = window.URL.createObjectURL(response.data);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `study-material.${format}`;
+      a.download = `${baseName}.${format}`;
       a.click();
       window.URL.revokeObjectURL(url);
+      setDownloadSuccess(`Downloaded ${baseName}.${format}`);
     } catch {
-      setError('Download failed.');
+      setDownloadError('Download failed. Please try again.');
+      setLastFailedFormat(format);
+    } finally {
+      setDownloading(null);
     }
   }
 
@@ -338,20 +353,37 @@ export default function Dashboard() {
                     {activeTab === 'download' && (
                       <section className="download-section">
                         <p>Download this study material in your preferred format:</p>
+
+                        <Alert message={downloadSuccess} variant="success" onDismiss={() => setDownloadSuccess('')} />
+                        <Alert message={downloadError} variant="error" onDismiss={() => setDownloadError('')} />
+
                         <div className="download-grid">
-                          <button onClick={() => handleDownload('txt')} className="download-card">
-                            <span className="download-icon">TXT</span>
-                            <span>Plain Text</span>
-                          </button>
-                          <button onClick={() => handleDownload('csv')} className="download-card">
-                            <span className="download-icon">CSV</span>
-                            <span>Spreadsheet</span>
-                          </button>
-                          <button onClick={() => handleDownload('md')} className="download-card">
-                            <span className="download-icon">MD</span>
-                            <span>Markdown</span>
-                          </button>
+                          {[
+                            { format: 'txt', label: 'Plain Text' },
+                            { format: 'csv', label: 'Spreadsheet' },
+                            { format: 'md', label: 'Markdown' },
+                          ].map(({ format, label }) => (
+                            <button
+                              key={format}
+                              onClick={() => handleDownload(format)}
+                              className={`download-card ${downloading === format ? 'downloading' : ''}`}
+                              disabled={!!downloading}
+                            >
+                              <span className="download-icon">{format.toUpperCase()}</span>
+                              <span>{downloading === format ? 'Downloading...' : label}</span>
+                            </button>
+                          ))}
                         </div>
+
+                        {lastFailedFormat && (
+                          <button
+                            className="btn btn-primary retry-btn"
+                            onClick={() => handleDownload(lastFailedFormat)}
+                            disabled={!!downloading}
+                          >
+                            Retry {lastFailedFormat.toUpperCase()} download
+                          </button>
+                        )}
                       </section>
                     )}
                   </div>
