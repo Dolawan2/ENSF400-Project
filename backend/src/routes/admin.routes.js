@@ -2,6 +2,7 @@ const { Router } = require('express');
 const Joi = require('joi');
 const validate = require('../middleware/validate');
 const adminController = require('../controllers/admin.controller');
+const { authenticate, requireAdmin } = require('../middleware/auth') 
 
 const router = Router();
 
@@ -10,6 +11,8 @@ const updateUserSchema = Joi.object({
   email: Joi.string().email(),
   role: Joi.string().valid('student', 'admin'),
 }).min(1);
+
+router.use(authenticate, requireAdmin);
 
 router.get('/users', adminController.listUsers);
 router.get('/users/:id', adminController.getUser);
