@@ -11,6 +11,8 @@ const updateUserSchema = Joi.object({
   role: Joi.string().valid('student', 'admin'),
 }).min(1);
 
+router.use(authenticate, requireAdmin);
+
 router.get('/users', adminController.listUsers);
 router.get('/users/:id', adminController.getUser);
 router.put('/users/:id', validate(updateUserSchema), adminController.updateUser);
