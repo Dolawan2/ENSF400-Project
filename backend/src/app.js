@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const { authenticate, requireAdmin } = require('./middleware/auth');
 const errorHandler = require('./middleware/errorHandler');
+const requestTimer = require('./middleware/requestTimer');
 
 const authRoutes = require('./routes/auth.routes');
 const uploadRoutes = require('./routes/upload.routes');
@@ -19,6 +20,7 @@ app.use(helmet());
 app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:5174'], credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan('dev'));
+app.use(requestTimer);
 
 // Health check
 app.get('/api/health', (req, res) => {

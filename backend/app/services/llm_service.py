@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import time
 from google import genai
 from google.genai import types
 
@@ -105,18 +106,15 @@ def buildStructuredSummaryMessages(summaryText: str) -> list[dict]:
 async def generateStructuredSummary(summaryText: str) -> StructuredSummaryResponse:
     structuredMessages = buildStructuredSummaryMessages(summaryText)
 
-    rawResponse = await asyncio.wait_for(
-        asyncio.to_thread(
-            geminiClient.models.generate_content,
-            model=settings.geminiModel,
-            contents=[msg["content"] for msg in structuredMessages],
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema=StructuredSummaryResponse,
-                temperature=0.2,
-            ),
+    rawResponse = await asyncio.to_thread(
+        geminiClient.models.generate_content,
+        model=settings.geminiModel,
+        contents=[msg["content"] for msg in structuredMessages],
+        config=types.GenerateContentConfig(
+            response_mime_type="application/json",
+            response_schema=StructuredSummaryResponse,
+            temperature=0.2,
         ),
-        timeout=settings.generationTimeout,
     )
 
     parsedResponse: StructuredSummaryResponse = rawResponse.parsed
@@ -125,14 +123,11 @@ async def generateStructuredSummary(summaryText: str) -> StructuredSummaryRespon
 async def generateSummary(notesText: str) -> str:
     summaryMessages = buildSummaryMessages(notesText)
 
-    summaryResponse = await asyncio.wait_for(
-        asyncio.to_thread(
-            geminiClient.models.generate_content,
-            model=settings.geminiModel,
-            contents=[msg["content"] for msg in summaryMessages],
-            config=types.GenerateContentConfig(temperature=0.4),
-        ),
-        timeout=settings.generationTimeout,
+    summaryResponse = await asyncio.to_thread(
+        geminiClient.models.generate_content,
+        model=settings.geminiModel,
+        contents=[msg["content"] for msg in summaryMessages],
+        config=types.GenerateContentConfig(temperature=0.4),
     )
 
     return summaryResponse.text.strip()
@@ -151,40 +146,74 @@ async def generateQuestions(
         questionMessages = buildShortAnswerMessages(notesText, numQuestions)
         responseSchema   = ShortAnswerResponse
 
-    rawResponse = await asyncio.wait_for(
-        asyncio.to_thread(
-            geminiClient.models.generate_content,
-            model=settings.geminiModel,
-            contents=[msg["content"] for msg in questionMessages],
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema=responseSchema,
-                temperature=0.6,
-            ),
+    rawResponse = await asyncio.to_thread(
+        geminiClient.models.generate_content,
+        model=settings.geminiModel,
+        contents=[msg["content"] for msg in questionMessages],
+        config=types.GenerateContentConfig(
+            response_mime_type="application/json",
+            response_schema=responseSchema,
+            temperature=0.6,
         ),
-        timeout=settings.generationTimeout,
     )
 
     parsedResponse: MultipleChoiceResponse | ShortAnswerResponse = rawResponse.parsed
     return parsedResponse.questions
 
 
+async def _runGenerationInner(
+    notesText: str,
+    questionType: QuestionType,
+    numQuestions: int,
+) -> tuple[str, StructuredSummaryResponse, list, dict]:
+    timings: dict = {}
+
+    summaryStart = time.perf_counter()
+    summary = await generateSummary(notesText)
+    timings["summary"] = round(time.perf_counter() - summaryStart, 3)
+
+    parallelStart = time.perf_counter()
+    structuredSummary, questions = await asyncio.gather(
+        generateStructuredSummary(summary),
+        generateQuestions(notesText, questionType, numQuestions),
+    )
+    timings["structuredAndQuestions"] = round(time.perf_counter() - parallelStart, 3)
+
+    return summary, structuredSummary, questions, timings
+
+
 async def runGeneration(
     notesText: str,
     questionType: QuestionType,
     numQuestions: int,
-) -> tuple[str, StructuredSummaryResponse, list]:
+) -> tuple[str, StructuredSummaryResponse, list, float]:
+    overallStart = time.perf_counter()
     try:
-        summary = await generateSummary(notesText)
-
-        structuredSummary, questions = await asyncio.gather(
-            generateStructuredSummary(summary),
-            generateQuestions(notesText, questionType, numQuestions),
+        summary, structuredSummary, questions, timings = await asyncio.wait_for(
+            _runGenerationInner(notesText, questionType, numQuestions),
+            timeout=settings.generationTimeout,
         )
-        return summary, structuredSummary, questions
+        totalDuration = round(time.perf_counter() - overallStart, 3)
+
+        logger.info(
+            "Generation finished in %.3fs (summary=%.3fs, structured+questions=%.3fs)",
+            totalDuration,
+            timings["summary"],
+            timings["structuredAndQuestions"],
+        )
+        if totalDuration > 30:
+            logger.warning(
+                "Slow generation: %.3fs (>30s threshold)", totalDuration
+            )
+        return summary, structuredSummary, questions, totalDuration
 
     except asyncio.TimeoutError:
-        logger.warning("Generation timed out after %ds", settings.generationTimeout)
+        elapsed = round(time.perf_counter() - overallStart, 3)
+        logger.warning(
+            "Generation timed out after %.3fs (limit=%ds)",
+            elapsed,
+            settings.generationTimeout,
+        )
         raise
 
     except Exception as apiError:

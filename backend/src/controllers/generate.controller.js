@@ -15,11 +15,14 @@ async function generate(req, res, next) {
       throw new ApiError(403, 'Access denied.');
     }
 
+    const startedAt = Date.now();
     const result = await generateStudyMaterial(
       upload.extracted_text,
       questionType,
       numQuestions || 5
     );
+    const elapsedSeconds = (Date.now() - startedAt) / 1000;
+    logGenerationDuration('generate', elapsedSeconds, result.durationSeconds);
 
     const generation = await genQueries.createGeneration(
       uploadId,
@@ -48,11 +51,14 @@ async function regenerate(req, res, next) {
       throw new ApiError(403, 'Access denied.');
     }
 
+    const startedAt = Date.now();
     const result = await regenerateStudyMaterial(
       upload.extracted_text,
       questionType,
       numQuestions || 5
     );
+    const elapsedSeconds = (Date.now() - startedAt) / 1000;
+    logGenerationDuration('regenerate', elapsedSeconds, result.durationSeconds);
 
     const generation = await genQueries.createGeneration(
       uploadId,
@@ -66,6 +72,18 @@ async function regenerate(req, res, next) {
     res.status(201).json({ generation });
   } catch (err) {
     next(err);
+  }
+}
+
+function logGenerationDuration(label, nodeElapsed, llmDuration) {
+  const llmText = typeof llmDuration === 'number' ? `${llmDuration.toFixed(3)}s` : 'n/a';
+  const line = `[${label}] node=${nodeElapsed.toFixed(3)}s llm=${llmText}`;
+  if (nodeElapsed > 50) {
+    console.warn(`${line} — near 60s timeout`);
+  } else if (nodeElapsed > 30) {
+    console.warn(`${line} — slow generation`);
+  } else {
+    console.log(line);
   }
 }
 

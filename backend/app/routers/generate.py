@@ -19,7 +19,7 @@ async def generateStudyMaterial(request: GenerateRequest):
         )
 
     try:
-        summary, structuredSummary, questions = await runGeneration(
+        summary, structuredSummary, questions, durationSeconds = await runGeneration(
             notesText=request.notesText,
             questionType=request.questionType,
             numQuestions=request.numQuestions,
@@ -40,9 +40,10 @@ async def generateStudyMaterial(request: GenerateRequest):
 
     return GenerateResponse(
         summary=summary,
-        structuredSummary = structuredSummary, 
+        structuredSummary=structuredSummary,
         questionType=request.questionType,
         questions=questions,
+        durationSeconds=durationSeconds,
     )
 
 

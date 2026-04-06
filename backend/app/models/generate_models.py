@@ -45,3 +45,4 @@ class GenerateResponse(BaseModel):
     structuredSummary: StructuredSummaryResponse
     questionType: QuestionType
     questions: List[MultipleChoiceQuestion] | List[ShortAnswerQuestion]
+    durationSeconds: float
