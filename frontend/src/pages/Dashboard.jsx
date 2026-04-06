@@ -301,7 +301,7 @@ export default function Dashboard() {
                         className={`gen-chip ${activeGeneration?.id === g.id ? 'active' : ''}`}
                         onClick={() => { setActiveGeneration(g); setActiveTab('summary'); }}
                       >
-                        {questionTypeLabel(g.question_type)} &middot; {new Date(g.created_at).toLocaleTimeString()}
+                        {questionTypeLabel(g.question_type)} &middot; {new Date(g.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                       </button>
                     ))}
                   </div>
