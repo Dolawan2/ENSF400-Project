@@ -30,7 +30,7 @@ cd backend && mkdir -p certs && cd certs && \
     -days 365 -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
 ```
 
-The `backend/certs/` directory is gitignored — each developer generates their own. The first time you visit the site, your browser will warn about the self-signed cert. Click **Advanced → Proceed to localhost** to accept it (also do this for `https://localhost:3000` if the API requests fail).
+The `backend/certs/` directory is gitignored — each developer generates their own. The first time you visit the site, your browser will warn "Your connection is not private." Click **Advanced → Proceed to localhost** to accept the cert. If you can log in but the rest of the app shows network errors, also visit `https://localhost:3000/api/health` in a tab and accept the cert there too. This is normal for self-signed certs and only happens once per browser.
 
 ### 1. Database
 
