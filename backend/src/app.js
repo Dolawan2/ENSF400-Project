@@ -16,7 +16,7 @@ const app = express();
 
 // Global middleware
 app.use(helmet());
-app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:5174'], credentials: true }));
+app.use(cors({ origin: ['https://localhost:5173', 'https://localhost:5174'], credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan('dev'));
 
