@@ -1,8 +1,14 @@
 require('dotenv').config();
+const path = require('path');
 
 module.exports = {
   port: parseInt(process.env.PORT, 10) || 3000,
   nodeEnv: process.env.NODE_ENV || 'development',
+
+  tls: {
+    keyPath: process.env.TLS_KEY_PATH || path.join(__dirname, '..', '..', 'certs', 'localhost.key'),
+    certPath: process.env.TLS_CERT_PATH || path.join(__dirname, '..', '..', 'certs', 'localhost.crt'),
+  },
 
   db: {
     host: process.env.DB_HOST || 'localhost',
@@ -18,7 +24,7 @@ module.exports = {
   },
 
   llm: {
-    baseUrl: process.env.LLM_BASE_URL || 'http://localhost:8000',
+    baseUrl: process.env.LLM_BASE_URL || 'https://localhost:8000',
   },
 
   upload: {

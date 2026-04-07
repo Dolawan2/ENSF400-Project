@@ -17,3 +17,8 @@ Thumbs.db
 # Build output
 dist/
 build/
+
+# TLS certificates (each developer generates their own self-signed cert)
+backend/certs/
+*.key
+*.crt

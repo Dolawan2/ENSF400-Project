@@ -20,6 +20,18 @@ A full-stack web application that allows students to upload PDF notes and genera
 
 ## Setup
 
+### 0. TLS Certificate (HTTPS)
+
+The whole app runs over HTTPS in development. Generate a self-signed certificate for `localhost` (one-time, per developer):
+
+```bash
+cd backend && mkdir -p certs && cd certs && \
+  openssl req -x509 -newkey rsa:2048 -nodes -keyout localhost.key -out localhost.crt \
+    -days 365 -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+```
+
+The `backend/certs/` directory is gitignored — each developer generates their own. The first time you visit the site, your browser will warn "Your connection is not private." Click **Advanced → Proceed to localhost** to accept the cert. If you can log in but the rest of the app shows network errors, also visit `https://localhost:3000/api/health` in a tab and accept the cert there too. This is normal for self-signed certs and only happens once per browser.
+
 ### 1. Database
 
 Create the database and run the schema:
@@ -52,7 +64,7 @@ DB_NAME=studydigest
 DB_USER=your_db_user
 DB_PASSWORD=your_db_password
 JWT_SECRET=your-secret-key
-LLM_BASE_URL=http://localhost:8000
+LLM_BASE_URL=https://localhost:8000
 ```
 
 Install dependencies and start:
@@ -62,7 +74,7 @@ npm install
 npm start
 ```
 
-The API will be running at `http://localhost:3000`.
+The API will be running at `https://localhost:3000`.
 
 ### 3. LLM Microservice (Python/FastAPI)
 
@@ -79,13 +91,14 @@ Add your Gemini API key to `backend/.env`:
 GEMINI_API_KEY=your-gemini-api-key
 ```
 
-Start the LLM service:
+Start the LLM service (uses the same self-signed cert as the Node backend):
 
 ```bash
-uvicorn app.main:studyDigestApp --reload --port 8000
+uvicorn app.main:studyDigestApp --reload --port 8000 \
+  --ssl-keyfile certs/localhost.key --ssl-certfile certs/localhost.crt
 ```
 
-The LLM service will be running at `http://localhost:8000`.
+The LLM service will be running at `https://localhost:8000`.
 
 ### 4. Frontend (React)
 
@@ -95,7 +108,7 @@ npm install
 npm run dev
 ```
 
-The frontend will be running at `http://localhost:5173`.
+The frontend will be running at `https://localhost:5173`.
 
 ## Running the Full Application
 
@@ -106,13 +119,14 @@ You need three terminals running simultaneously:
 cd backend && npm start
 
 # Terminal 2 - LLM Service
-cd backend && source venv/bin/activate && uvicorn app.main:studyDigestApp --reload --port 8000
+cd backend && source venv/bin/activate && uvicorn app.main:studyDigestApp --reload --port 8000 \
+  --ssl-keyfile certs/localhost.key --ssl-certfile certs/localhost.crt
 
 # Terminal 3 - Frontend
 cd frontend && npm run dev
 ```
 
-Then open http://localhost:5173 in your browser.
+Then open https://localhost:5173 in your browser.
 
 ## API Endpoints
 
